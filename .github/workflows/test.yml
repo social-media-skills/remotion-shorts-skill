@@ -1,0 +1,64 @@
+name: test
+on: [push, pull_request, workflow_dispatch]
+jobs:
+  render:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Linux libraries for the headless browser
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y libnss3 libdbus-1-3 libatk1.0-0 libasound2t64 libxrandr2 libxkbcommon-dev libxfixes3 libxcomposite1 libxdamage1 libgbm-dev libcups2 libcairo2 libpango-1.0-0 libatk-bridge2.0-0
+      - name: No local paths in the repo
+        run: "! grep -rn --exclude-dir=node_modules '/Users/' skills README.md"
+      - name: Set up a project
+        run: node skills/remotion-shorts-skill/scripts/setup.mjs work
+      - name: Render both examples
+        working-directory: work
+        run: |
+          node render.mjs ../skills/remotion-shorts-skill/examples/water/water.json --out out/water
+          node render.mjs ../skills/remotion-shorts-skill/examples/launch/launch.json --out out/launch
+      - name: A script with problems stops before the video
+        working-directory: work
+        run: |
+          printf '{"scenes":[{"type":"text","text":"This scene has far too many words to read on one screen of a phone in the time a short gives you, so it should be split up","highlight":"missing"}]}' > bad.json
+          set +e
+          node render.mjs bad.json --out out/bad
+          code=$?
+          set -e
+          test "$code" = "2"
+          test -f out/bad/sheet.jpg
+          test ! -f out/bad/bad.mp4
+      - name: Verify output
+        working-directory: work
+        run: |
+          node - <<'JS'
+          const fs = require("fs");
+          for (const n of ["water", "launch"]) {
+            const r = JSON.parse(fs.readFileSync(`out/${n}/report.json`, "utf8"));
+            if (r.warnings.length) throw new Error(`${n}: ${r.warnings.join("; ")}`);
+            if (r.width !== 1080 || r.height !== 1920) throw new Error(`${n}: size ${r.width}x${r.height}`);
+            if (r.seconds < 10 || r.seconds > 59) throw new Error(`${n}: ${r.seconds}s`);
+            const mp4 = `out/${n}/${n}.mp4`;
+            const size = fs.statSync(mp4).size;
+            if (size < 500000 || size !== r.bytes) throw new Error(`${n}: mp4 ${size} bytes`);
+            for (const f of ["sheet.jpg", "cuts.jpg", "cover.jpg"]) if (!fs.existsSync(`out/${n}/${f}`)) throw new Error(`${n}: no ${f}`);
+          }
+          const bad = JSON.parse(fs.readFileSync("out/bad/report.json", "utf8"));
+          if (!bad.warnings.some((w) => w.includes("paragraph")) || !bad.warnings.some((w) => w.includes("missing"))) throw new Error("warnings not raised");
+          console.log("ok");
+          JS
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: renders-${{ matrix.os }}
+          path: work/out
