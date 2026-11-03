@@ -1,6 +1,6 @@
 # Remotion Shorts Skill for Claude Code, Codex, Cursor and OpenClaw
 
-**Remotion Shorts Skill** is a free, open-source AI agent skill that makes finished vertical short videos with [Remotion](https://www.remotion.dev) and posts them to TikTok, Instagram Reels and YouTube Shorts. You give your agent a topic, an article, a dataset, a changelog or a list. It writes the script as one JSON file, and the bundled Remotion project turns that into a 1080x1920 kinetic-text short:
+**Remotion Shorts Skill** is a free, open-source Remotion skill for Claude Code and other AI agents that makes finished vertical short videos with [Remotion](https://www.remotion.dev) and posts them to TikTok, Instagram Reels and YouTube Shorts. You give your agent a topic, an article, a dataset, a changelog or a list. It writes the script as one JSON file, and the bundled Remotion project turns that into a 1080x1920 kinetic-text short:
 
 - big animated words, stat count-ups, top-N list items, quotes, launch and changelog scenes;
 - every scene timed to reading speed;
@@ -144,6 +144,10 @@ Posting to several accounts? The skill makes a different version for each one (a
 
 ## FAQ
 
+**What is a Remotion skill?** An agent skill (a folder with a `SKILL.md`) that tells a coding agent such as Claude Code how to make video with Remotion. This one ships a finished, tested Remotion project, so the agent writes only the script as a JSON file instead of new Remotion code for every video.
+
+**Can Claude Code make videos with Remotion?** Yes. With this skill Claude Code writes the script, checks it with review sheets and renders the MP4 on your machine with Node. Codex, Cursor and OpenClaw work the same way.
+
 **Do I need to know Remotion?** No. The templates are done; the agent writes a JSON file. If you want to change the design, the project is a normal Remotion project: run `npm run studio` and edit `src/Short.tsx`.
 
 **How long does a render take?** A 20-second short renders in under a minute on a recent laptop. The review sheets take a few seconds.
@@ -152,9 +156,11 @@ Posting to several accounts? The skill makes a different version for each one (a
 
 **Can I put photos or video behind the text?** Yes, per scene or for the whole short. They are dimmed under the theme colour so the text stays readable.
 
+**Does it edit existing footage?** No. It makes new text-led shorts. Your own photo or video can sit behind any scene, dimmed so the text stays readable.
+
 **Does it work without WoopSocial?** Yes. Everything up to the MP4 is local. Posting is the optional last step.
 
-**Is it free for my company?** The skill is MIT. Remotion is free for individuals and companies of up to 3 people; larger companies need a Remotion company licence. See [Licence](#licence).
+**Is it free for my company?** The skill is MIT. Remotion is free for individuals, non-profits and companies of up to 3 people; larger companies need a Remotion company licence, and rendering from scripts counts as automation. See [Licence](#licence).
 
 ## What's inside
 
